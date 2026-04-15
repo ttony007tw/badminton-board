@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>羽球計分板</title>
+
+    <style>
+        :root {
+            --blue: #1a5fb4;
+            --red: #a51d2d;
+        }
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; background: #000; color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+        .team {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.1s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .team:active { opacity: 0.7; }
+        #teamLeft { background-color: var(--blue); }
+        #teamRight { background-color: var(--red); }
+        
+        .score {
+            font-size: clamp(80px, 25vw, 150px);
+            font-weight: 800;
+            line-height: 1;
+        }
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: env(safe-area-inset-bottom, 15px);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            pointer-events: none; /* 防止擋住大按鈕 */
+        }
+        button {
+            pointer-events: auto;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainBoard">
+    <div id="teamLeft" class="team" onclick="addScore('left')">
+        <div class="label" id="labelL">左方</div>
+        <div id="scoreL" class="score">0</div>
+    </div>
+    <div id="teamRight" class="team" onclick="addScore('right')">
+        <div class="label" id="labelR">右方</div>
+        <div id="scoreR" class="score">0</div>
+    </div>
+</div>
+
+<div class="controls">
+    <button onclick="undo()">上一步</button>
+    <button onclick="swapSides()">換邊</button>
+    <button onclick="reset()">歸零</button>
+</div>
+
+<script>
+    let scores = { left: 0, right: 0 };
+    let labels = { left: "左方", right: "右方" };
+    let history = [];
+
+    function addScore(side) {
+        history.push({...scores});
+        scores[side]++;
+        updateDisplay();
+        vibrate();
+    }
+
+    function undo() {
+        if (history.length > 0) {
+            scores = history.pop();
+            updateDisplay();
+        }
+    }
+
+    function swapSides() {
+        // 交換分數與顏色/標籤
+        let tempScore = scores.left;
+        scores.left = scores.right;
+        scores.right = tempScore;
+        
+        let tempLabel = labels.left;
+        labels.left = labels.right;
+        labels.right = tempLabel;
+        
+        updateDisplay();
+    }
+
+    function reset() {
+        if (confirm("確定歸零嗎？")) {
+            scores = { left: 0, right: 0 };
+            history = [];
+            updateDisplay();
+        }
+    }
+
+    function updateDisplay() {
+        document.getElementById('scoreL').innerText = scores.left;
+        document.getElementById('scoreR').innerText = scores.right;
+        document.getElementById('labelL').innerText = labels.left;
+        document.getElementById('labelR').innerText = labels.right;
+    }
+
+    function vibrate() {
+        if (navigator.vibrate) {
+            navigator.vibrate(60); 
+        }
+    }
+    
+    // 防止手機瀏覽器下拉重新整理
+    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+</script>
+
+</body>
+</html>
